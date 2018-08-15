@@ -36,19 +36,25 @@ Download your installer according to your system version. Double-click to instal
 
 Here you can add, edit or remove your Blackboard credentials. Please note that your password will **not** show as you type. Use `RETURN` or `ENTER` to confirm your input.
 
-### Section 2 - Reset Options
+### Section 2 - Quick Run Options
+
+Here you can do a quick run of Blackbox. Just key in `y` and hit `ENTER` and Blackbox will run automatically. You will not need to configure the options below.
+
+---
+
+### Section 3 - Reset Options
 
 Here you can choose what to reset in Blackbox.
 
 Key in `y` and hit `ENTER` when you are asked "Would you like to reset everything?".
 
-### Section 3 - Download Options
+### Section 4 - Download Options
 
 Here you can choose whether you want to throttle your downloads in Blackbox.
 
 Key in `y` and hit `ENTER` when you are asked "Would you like to throttle your downloads?".
 
-### Section 4 - Execute Options
+### Section 5 - Execute Options
 
 Here you can determine whether you want to throttle your downloads.
 
