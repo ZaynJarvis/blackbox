@@ -10,7 +10,7 @@ Blackbox is a command-line program that attempts to download all your files from
 
 ## How to Download & Install
 
-Download your installer according to your system version. Double-click to install and choose a location which is convenient for you to access because all your downloads will be stored in that folder. **Do NOT install it in your program files; choose a folder like your Downloads folder instead.**
+Download your installer according to your system version. Double-click to install and choose a location which is convenient for you to access because all your downloads will be stored in that folder. **Do NOT install it in your program files; create a NEW FOLDER in your Downloads folder instead.**
 
 ### Downloads
 
