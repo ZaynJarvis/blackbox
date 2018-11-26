@@ -1,0 +1,12 @@
+cx-Freeze==5.1.1
+keyring==13.2.1
+pprint==0.1
+requests==2.19.1
+selenium==3.13.0
+SQLAlchemy==1.2.9
+tqdm==4.23.4
+lxml==4.2.3
+configparser==3.5.0
+idna==2.7
+backports.weakref==1.0.post1
+six==1.11.0

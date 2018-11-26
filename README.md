@@ -4,9 +4,11 @@ Dropbox for Blackboard
 
 ## About
 
-Blackbox is a command-line program that attempts to download all your files from Blackboard. It doesn't, however, sync your files automatically just like Dropbox does, but that feature is in the pipeline.
+Blackbox is a command-line program that attempts to download all your files from Blackboard. It doesn't, however, sync your files automatically.
 
 ---
+
+# For Users
 
 ## How to Download & Install
 
@@ -94,6 +96,44 @@ Key in `y` and hit `ENTER` when you are asked "Would you like to execute everyth
 
 ---
 
+# For Devs
+
+## Basic Info
+
+Blackbox is written in Python 2.7. It uses Selenium and `chromedriver` (renamed to `boxdriver`) to scrap the links of the courses first, then uses a persistent `requests` session to extract other data and download files. All user credentials is stored using `keyring`.
+
+Blackbox is freezed into executables using `cx_Freeze` which supports cross-platform exporting and 32-bit and 64-bit systems. To prevent compatibility during compilation, it is recommended to use a single Python script.
+
+PRs welcome.
+
+## How to Build
+
+> Pip install `cx_Freeze`
+
+```
+$ python2 -m pip install cx_Freeze --upgrade
+```
+
+> Build for current system (build)
+
+```
+$ python2 setup.py build
+```
+
+> Build for Windows (build & dist)
+
+```
+$ python2 setup.py bdist_msi
+```
+
+> Build for Mac (build & dist)
+
+```
+$ python2 setup.py bdist_mac
+```
+
+---
+
 ## Limitations
 
 There is no easy way to determine whether a file has been updated or not - a file must be re-downloaded to determine whether so. Blackbox supports either an indiscriminate (re-)download of all files or a download of new files.
@@ -101,3 +141,9 @@ There is no easy way to determine whether a file has been updated or not - a fil
 ## Disclaimer
 
 The author accepts no responsibility for any damage done to your machine in your course of using this program.
+
+## Contributors
+
+- Jarrett Yeo
+
+Contributors feel free to add your name here after your PR is accepted!
