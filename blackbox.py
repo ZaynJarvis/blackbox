@@ -178,13 +178,13 @@ def download_file(url, response):
     print("\n")
 
     filename = urllib.unquote(url.split("/")[-1])
-    print("Downloading %s ..." % filename)
+    print("Downloading %s ..." % filename).encode('utf-8')
 
     with open(filename, "wb") as handle:
         for data in tqdm(response.iter_content()):
             handle.write(data)
 
-    print("Download complete for %s!" % filename)
+    print("Download complete for %s!" % filename).encode('utf-8')
 
 def login():
     '''
@@ -748,7 +748,7 @@ def download_file_to_folder(url, response, folder_path):
     print("\nEntering download_file_to_folder(%s, %s, %s)" % (url,response,folder_path))
 
     filename = urllib.unquote(urlparse(url).path.split("/")[-1]) # clean filename from query
-    print("download_file_to_folder()>filename: %s" % filename)
+    print("download_file_to_folder()>filename: %s" % filename).encode('utf-8')
     file_extension = filename.split('.')[-1]
     print("download_file_to_folder()>file_extension: %s" % file_extension)
 
@@ -784,13 +784,13 @@ def download_file_to_folder(url, response, folder_path):
         if len(final_full_path) > 259:
             final_full_path = chr(92) + chr(92) + '?' + chr(92) + final_full_path
 
-    print("Downloading %s ..." % filename)
+    print("Downloading %s ..." % filename).encode('utf-8')
     print("@ %s" % final_full_path)
     with open(final_full_path, "wb") as handle:
         for data in tqdm(response.iter_content()):
             handle.write(data)
 
-    print("Download complete for %s!" % filename)
+    print("Download complete for %s!" % filename).encode('utf-8')
 
     return filename
 
