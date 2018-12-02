@@ -1082,6 +1082,8 @@ def init_keyring_options():
             keyring.delete_password('system', 'username')
             keyring.delete_password('system', 'password')
             user_wants_to_change_credentials = True
+        else if change_credentials.strip() == '':
+            user_wants_to_change_credentials = False
         else:
             user_wants_to_change_credentials = False
 
@@ -1126,7 +1128,7 @@ def fast_and_furious():
 
     one_shot = raw_input("Do you want to do a hassle-free quick run of Blackbox [Y/N]? ")
 
-    if one_shot.strip() == 'Y' or one_shot.strip() == 'y':
+    if one_shot.strip() == 'Y' or one_shot.strip() == 'y' or one_shot.strip() == '':
 
         reset_ALL_except_downloads()
 

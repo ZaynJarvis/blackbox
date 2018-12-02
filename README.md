@@ -134,7 +134,7 @@ $ python2 setup.py bdist_dmg
 
 or
 
-``` 
+```
 $ python2 setup.py bdist_mac
 ```
 
@@ -150,6 +150,8 @@ The author accepts no responsibility for any damage done to your machine in your
 
 ## Contributors
 
-- Jarrett Yeo
+- [Jarrett Yeo](https://github.com/jarrettyeo)
+
+- [Adi](https://github.com/adithyaxx)
 
 Contributors feel free to add your name here after your PR is accepted!
