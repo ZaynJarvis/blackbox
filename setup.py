@@ -3,7 +3,7 @@ from cx_Freeze import setup, Executable
 
 # Dependencies are automatically detected, but it might need fine tuning.
 # WARNING: YOU MUST INCLUDE 'idna' AS A DEPENDENCY
-build_exe_options = {"packages": ['sqlalchemy', 'datetime', 'requests', 'lxml', 'tqdm', 'sys', 'string', 'pprint', 'selenium', 'urllib', 'time', 're', 'os', 'errno', 'traceback', 'random', 'urlparse', 'keyring', 'getpass', 'logging', 'idna', 'six', 'weakref'], "include_files": ['boxdriver', 'boxdriver.exe']}
+build_exe_options = {"packages": ['backports.weakref', 'sqlalchemy', 'datetime', 'requests', 'lxml', 'tqdm', 'sys', 'string', 'pprint', 'selenium', 'urllib', 'time', 're', 'os', 'errno', 'traceback', 'random', 'urlparse', 'keyring', 'getpass', 'logging', 'idna', 'six', 'weakref'], "include_files": ['boxdriver', 'boxdriver.exe']}
 
 base = None
 

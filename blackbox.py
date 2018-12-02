@@ -1,3 +1,4 @@
+
 import requests
 from lxml.html import fromstring
 from tqdm import tqdm
@@ -251,6 +252,7 @@ def selenium_get_courses():
         driver = webdriver.Chrome(os.path.join(CHROMEDRIVER_PATH, "boxdriver.exe"), chrome_options=chrome_options)
     else:  # Mac
         print(os.path.join(CHROMEDRIVER_PATH, "boxdriver"))
+	os.chmod(os.path.join(CHROMEDRIVER_PATH, "boxdriver"), 0755)
         driver = webdriver.Chrome(os.path.join(CHROMEDRIVER_PATH, "boxdriver"), chrome_options=chrome_options)
 
     driver.get("https://ntulearn.ntu.edu.sg/webapps/login/")
