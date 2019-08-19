@@ -1,3 +1,4 @@
+
 import requests
 from lxml.html import fromstring
 from tqdm import tqdm
@@ -178,13 +179,13 @@ def download_file(url, response):
     print("\n")
 
     filename = urllib.unquote(url.split("/")[-1])
-    print("Downloading %s ..." % filename)
+    print("Downloading %s ..." % filename).encode('utf-8')
 
     with open(filename, "wb") as handle:
         for data in tqdm(response.iter_content()):
             handle.write(data)
 
-    print("Download complete for %s!" % filename)
+    print("Download complete for %s!" % filename).encode('utf-8')
 
 def login():
     '''
@@ -251,6 +252,7 @@ def selenium_get_courses():
         driver = webdriver.Chrome(os.path.join(CHROMEDRIVER_PATH, "boxdriver.exe"), chrome_options=chrome_options)
     else:  # Mac
         print(os.path.join(CHROMEDRIVER_PATH, "boxdriver"))
+	os.chmod(os.path.join(CHROMEDRIVER_PATH, "boxdriver"), 0755)
         driver = webdriver.Chrome(os.path.join(CHROMEDRIVER_PATH, "boxdriver"), chrome_options=chrome_options)
 
     driver.get("https://ntulearn.ntu.edu.sg/webapps/login/")
@@ -748,7 +750,7 @@ def download_file_to_folder(url, response, folder_path):
     print("\nEntering download_file_to_folder(%s, %s, %s)" % (url,response,folder_path))
 
     filename = urllib.unquote(urlparse(url).path.split("/")[-1]) # clean filename from query
-    print("download_file_to_folder()>filename: %s" % filename)
+    print("download_file_to_folder()>filename: %s" % filename).encode('utf-8')
     file_extension = filename.split('.')[-1]
     print("download_file_to_folder()>file_extension: %s" % file_extension)
 
@@ -784,13 +786,13 @@ def download_file_to_folder(url, response, folder_path):
         if len(final_full_path) > 259:
             final_full_path = chr(92) + chr(92) + '?' + chr(92) + final_full_path
 
-    print("Downloading %s ..." % filename)
+    print("Downloading %s ..." % filename).encode('utf-8')
     print("@ %s" % final_full_path)
     with open(final_full_path, "wb") as handle:
         for data in tqdm(response.iter_content()):
             handle.write(data)
 
-    print("Download complete for %s!" % filename)
+    print("Download complete for %s!" % filename).encode('utf-8')
 
     return filename
 
@@ -1080,6 +1082,8 @@ def init_keyring_options():
             keyring.delete_password('system', 'username')
             keyring.delete_password('system', 'password')
             user_wants_to_change_credentials = True
+        else if change_credentials.strip() == '':
+            user_wants_to_change_credentials = False
         else:
             user_wants_to_change_credentials = False
 
@@ -1124,7 +1128,7 @@ def fast_and_furious():
 
     one_shot = raw_input("Do you want to do a hassle-free quick run of Blackbox [Y/N]? ")
 
-    if one_shot.strip() == 'Y' or one_shot.strip() == 'y':
+    if one_shot.strip() == 'Y' or one_shot.strip() == 'y' or one_shot.strip() == '':
 
         reset_ALL_except_downloads()
 

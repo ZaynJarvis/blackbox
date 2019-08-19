@@ -1,3 +1,5 @@
 **/.DS_Store
 **/blackbox.db
 **/blackbox.log
+build/bdist.win32
+build/bdist.win-amd64
