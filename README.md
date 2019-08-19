@@ -134,7 +134,17 @@ $ python3 setup.py build
 > Exit from virtualenv
 
 ```
+<<<<<<< HEAD
 $ deactivate
+=======
+$ python2 setup.py bdist_dmg
+```
+
+or
+
+```
+$ python2 setup.py bdist_mac
+>>>>>>> c6175d4053124c39bfa8342b33601b835a6cedb5
 ```
 
 ---
@@ -153,7 +163,10 @@ The author and maintainers accepts no responsibility for any damage done to your
 - [Jarrett Yeo](https://github.com/jarrettyeo)
 
 - [Adi](https://github.com/adithyaxx)
+<<<<<<< HEAD
 
 - [Zayn Jarvis](https://github.com/zaynjarvis)
+=======
+>>>>>>> c6175d4053124c39bfa8342b33601b835a6cedb5
 
 Contributors feel free to add your name here after your PR is accepted!

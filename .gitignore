@@ -1,5 +1,10 @@
 **/.DS_Store
 **/blackbox.db
 **/blackbox.log
+<<<<<<< HEAD
 bb-env
 build
+=======
+build/bdist.win32
+build/bdist.win-amd64
+>>>>>>> c6175d4053124c39bfa8342b33601b835a6cedb5

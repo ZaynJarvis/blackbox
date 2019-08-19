@@ -1,4 +1,14 @@
+<<<<<<< HEAD
 import os, errno, time, datetime, random, sys, stat, string
+=======
+
+import requests
+from lxml.html import fromstring
+from tqdm import tqdm
+import sys
+
+import string
+>>>>>>> c6175d4053124c39bfa8342b33601b835a6cedb5
 
 import requests
 import urllib
@@ -134,14 +144,19 @@ def download_file(url, response):
 
     print("\n")
 
+<<<<<<< HEAD
     filename = unquote(url.split("/")[-1])
     print("Downloading %s ..." % filename)
+=======
+    filename = urllib.unquote(url.split("/")[-1])
+    print("Downloading %s ..." % filename).encode('utf-8')
+>>>>>>> c6175d4053124c39bfa8342b33601b835a6cedb5
 
     with open(filename, "wb") as handle:
         for data in tqdm(response.iter_content()):
             handle.write(data)
 
-    print("Download complete for %s!" % filename)
+    print("Download complete for %s!" % filename).encode('utf-8')
 
 def login():
     '''
@@ -197,11 +212,20 @@ def selenium_get_courses():
     chrome_options.add_experimental_option('prefs', prefs)
     chrome_options.add_argument("--headless")
 
+<<<<<<< HEAD
     if sys.platform == "win32":
         driver = webdriver.Chrome(os.path.join(CHROMEDRIVER_PATH, "boxdriver.exe"), options=chrome_options)
     else:
         os.chmod(os.path.join(CHROMEDRIVER_PATH, "boxdriver"), stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP)
         driver = webdriver.Chrome(os.path.join(CHROMEDRIVER_PATH, "boxdriver"), options=chrome_options)
+=======
+    if sys.platform == "win32":  # Windows
+        driver = webdriver.Chrome(os.path.join(CHROMEDRIVER_PATH, "boxdriver.exe"), chrome_options=chrome_options)
+    else:  # Mac
+        print(os.path.join(CHROMEDRIVER_PATH, "boxdriver"))
+	os.chmod(os.path.join(CHROMEDRIVER_PATH, "boxdriver"), 0755)
+        driver = webdriver.Chrome(os.path.join(CHROMEDRIVER_PATH, "boxdriver"), chrome_options=chrome_options)
+>>>>>>> c6175d4053124c39bfa8342b33601b835a6cedb5
 
     driver.get("https://ntulearn.ntu.edu.sg/webapps/login/")
     wait()
@@ -665,8 +689,13 @@ def download_file_to_folder(url, response, folder_path):
 
     print("\nEntering download_file_to_folder(%s, %s, %s)" % (url,response,folder_path))
 
+<<<<<<< HEAD
     filename = unquote(urlparse(url).path.split("/")[-1]) # clean filename from query
     print("download_file_to_folder()>filename: %s" % filename)
+=======
+    filename = urllib.unquote(urlparse(url).path.split("/")[-1]) # clean filename from query
+    print("download_file_to_folder()>filename: %s" % filename).encode('utf-8')
+>>>>>>> c6175d4053124c39bfa8342b33601b835a6cedb5
     file_extension = filename.split('.')[-1]
     print("download_file_to_folder()>file_extension: %s" % file_extension)
 
@@ -695,13 +724,13 @@ def download_file_to_folder(url, response, folder_path):
         if len(final_full_path) > 259:
             final_full_path = chr(92) + chr(92) + '?' + chr(92) + final_full_path
 
-    print("Downloading %s ..." % filename)
+    print("Downloading %s ..." % filename).encode('utf-8')
     print("@ %s" % final_full_path)
     with open(final_full_path, "wb") as handle:
         for data in tqdm(response.iter_content()):
             handle.write(data)
 
-    print("Download complete for %s!" % filename)
+    print("Download complete for %s!" % filename).encode('utf-8')
 
     return filename
 
@@ -973,7 +1002,11 @@ def init_keyring_options():
             keyring.delete_password('system', 'username')
             keyring.delete_password('system', 'password')
             user_wants_to_change_credentials = True
+<<<<<<< HEAD
         elif change_credentials.strip() == '':
+=======
+        else if change_credentials.strip() == '':
+>>>>>>> c6175d4053124c39bfa8342b33601b835a6cedb5
             user_wants_to_change_credentials = False
         else:
             user_wants_to_change_credentials = False
