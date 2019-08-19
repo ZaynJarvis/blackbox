@@ -1,47 +1,31 @@
+import os, errno, time, datetime, random, sys, stat, string
 
 import requests
-from lxml.html import fromstring
-from tqdm import tqdm
-import sys
-
-import string
-
+import urllib
+import traceback
+import keyring
+import getpass
+import logging
 from pprint import pprint
+
+from tqdm import tqdm
+from lxml.html import fromstring
+from urllib.parse import urlparse, unquote
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-import urllib # to parse strings into %-coded urlsafe strings
-import time # for explicitly waiting
-
-import os, errno
-
-import traceback
-import random
-
-from urlparse import urlparse
-
-import keyring
-import getpass
-
-import logging
-
 from sqlalchemy.orm import sessionmaker
-
 from sqlalchemy import *
 from sqlalchemy.ext.declarative import declarative_base
-import datetime
 
 if sys.platform == 'win32':
-    # relative paths begin with ///
     engine = create_engine('sqlite:///blackbox.db')
 else:
-    # absolute paths begin with ////
-    engine = create_engine('sqlite:///' + os.path.join(os.path.dirname(sys.argv[0]),'blackbox.db'))
+    engine = create_engine('sqlite:///' + os.path.join(os.getcwd(),'blackbox.db'))
 
 Base = declarative_base()
 
@@ -110,39 +94,20 @@ illegal_chars = '\/*?":|<>' # FYI only
 blacklisted_file_extensions = ['asf', 'avi', 'mov', 'moov', 'mpg', 'mpeg', 'qt', 'swa', 'swf', 'wmv', 'flv', 'mp4', 'mpeg', 'movie']
 
 def create_dir(full_file_path):
-
-    # test = os.path.join(os.getcwd(), 'a\\b\\d') <- store folder_path as this
-    # os.path.exists(test)
-
     print("create_dir(%s)" % full_file_path)
 
     full_path = os.path.join(full_file_path)
     if not os.path.exists(full_path):
         os.makedirs(full_path)
 
-    # if sys.version_info[0] == 2:
-    #     # Python 2.7
-    #     if not os.path.exists(os.path.dirname(full_file_path)):
-    #         try:
-    #             os.makedirs(os.path.dirname(full_file_path))
-    #         except OSError as exc:  # Guard against race condition
-    #             if exc.errno != errno.EEXIST:
-    #                 raise
-    #
-    # elif sys.version_info[0] == 3:
-    #     # Python 3
-    #     os.makedirs(os.path.dirname(full_file_path), exist_ok=True)
-
 def intialize_db():
 
     global db_session
 
     if sys.platform == 'win32':
-        # relative paths begin with ///
         engine = create_engine('sqlite:///blackbox.db')
     else:
-        # absolute paths begin with ////
-        engine = create_engine('sqlite:///' + os.path.join(os.path.dirname(sys.argv[0]),'blackbox.db'))
+        engine = create_engine('sqlite:///' + os.path.join(os.getcwd(),'blackbox.db'))
 
     Session = sessionmaker(bind=engine)
     db_session = Session()
@@ -151,41 +116,32 @@ def intialize_db():
     print("Blackbox Database initialized!")
 
 def get_title(response):
-
     try:
-        return clean_encoding(fromstring(response.content).findtext('.//title')) # .encode(sys.stdout.encoding, errors='replace')
+        return fromstring(response.content).findtext('.//title').decode('utf-8')
     except:
         return "<No Title Found>"
 
-def clean_encoding(this_string):
-
-    return this_string.encode(sys.stdout.encoding, errors='replace')
-
 def clean_string(this_string):
-
-    # return ''.join(c for c in this_string if c in legal_chars)
     return ''.join(c if c in legal_chars else '_' for c in this_string)
 
 def print_progress(response):
-
     print("\n")
-
     print("Title: " + get_title(response))
-    print("Status Code: " + str(response.status_code))
-    print("Response URL: " + response.url)
+    # print("Status Code: " + str(response.status_code))
+    # print("Response URL: " + response.url)
 
 def download_file(url, response):
 
     print("\n")
 
-    filename = urllib.unquote(url.split("/")[-1])
-    print("Downloading %s ..." % filename).encode('utf-8')
+    filename = unquote(url.split("/")[-1])
+    print("Downloading %s ..." % filename)
 
     with open(filename, "wb") as handle:
         for data in tqdm(response.iter_content()):
             handle.write(data)
 
-    print("Download complete for %s!" % filename).encode('utf-8')
+    print("Download complete for %s!" % filename)
 
 def login():
     '''
@@ -194,7 +150,7 @@ def login():
     global requests_session, data_credentials
 
     login_url = "https://ntulearn.ntu.edu.sg/webapps/login/"
-    # # note that in email have encoded '@' like uuuuuuu%40gmail.com
+    # note that in email have encoded '@' like uuuuuuu%40gmail.com
 
     response = requests_session.post(login_url, headers=headers, data=data_credentials)
     print_progress(response)
@@ -205,7 +161,7 @@ def navigate(this_url, print_results=False, download=False, print_all_links=Fals
     '''
     global requests_session
 
-    response = requests_session.get(this_url, timeout=(15,15)) # , headers=headers, data=data)
+    response = requests_session.get(this_url, timeout=(15,15))
 
     if print_results:
         print_progress(response)
@@ -226,18 +182,11 @@ def navigate(this_url, print_results=False, download=False, print_all_links=Fals
     #         text_collection.append(child.text_content())
     #     pprint(text_collection)
 
-# def cleanify(string_to_clean):
-#     # basic string function to create legal folder/file names
-#     return re.sub("[^\w_.)( -]", " ", string_to_clean.strip())
-
 def selenium_get_courses():
 
     global username, password
 
-    if sys.platform == "win32":
-        CHROMEDRIVER_PATH = os.getcwd()
-    else:
-        CHROMEDRIVER_PATH = os.path.dirname(sys.argv[0])
+    CHROMEDRIVER_PATH = os.getcwd()
 
     BLACKBOARD_DOWNLOAD_PATH = os.path.join(CHROMEDRIVER_PATH, 'Downloads')
 
@@ -248,19 +197,18 @@ def selenium_get_courses():
     chrome_options.add_experimental_option('prefs', prefs)
     chrome_options.add_argument("--headless")
 
-    if sys.platform == "win32":  # Windows
-        driver = webdriver.Chrome(os.path.join(CHROMEDRIVER_PATH, "boxdriver.exe"), chrome_options=chrome_options)
-    else:  # Mac
-        print(os.path.join(CHROMEDRIVER_PATH, "boxdriver"))
-	os.chmod(os.path.join(CHROMEDRIVER_PATH, "boxdriver"), 0755)
-        driver = webdriver.Chrome(os.path.join(CHROMEDRIVER_PATH, "boxdriver"), chrome_options=chrome_options)
+    if sys.platform == "win32":
+        driver = webdriver.Chrome(os.path.join(CHROMEDRIVER_PATH, "boxdriver.exe"), options=chrome_options)
+    else:
+        os.chmod(os.path.join(CHROMEDRIVER_PATH, "boxdriver"), stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP)
+        driver = webdriver.Chrome(os.path.join(CHROMEDRIVER_PATH, "boxdriver"), options=chrome_options)
 
     driver.get("https://ntulearn.ntu.edu.sg/webapps/login/")
     wait()
 
-    assert "Blackboard" in driver.title
 
     email_field = driver.find_element_by_id("user_id")
+    print(email_field)
     email_field.clear()
     email_field.send_keys(username)
 
@@ -277,11 +225,10 @@ def selenium_get_courses():
     driver.get("https://ntulearn.ntu.edu.sg/webapps/portal/execute/tabs/tabAction?tab_tab_group_id=_13_1")
     wait()
 
-    # assert "Courses" in driver.title
 
-    element = WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.CLASS_NAME, "courseInformation")))
+    element = WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.CLASS_NAME, "coursefakeclass")))
 
-    courses = driver.find_element_by_class_name("courseListing").find_elements_by_tag_name("li")
+    courses = driver.find_element_by_class_name("coursefakeclass").find_elements_by_tag_name("li")
 
     course_title_list = []
     course_url_list = []
@@ -290,15 +237,12 @@ def selenium_get_courses():
         course_title_list.append(clean_string(course.find_element_by_tag_name('a').text))
         course_url_list.append(course.find_element_by_tag_name('a').get_attribute("href"))
 
-    pprint(course_title_list)
-    pprint(course_url_list)
+    # pprint(course_title_list)
+    # pprint(course_url_list) # for debug only
 
     return course_title_list, course_url_list
 
 def commit_to_db_folder(course_title_list, course_url_list, parent_folder=None):
-
-    # global db_session
-
     for course in range(len(course_title_list)):
 
         if parent_folder == None:
@@ -308,13 +252,6 @@ def commit_to_db_folder(course_title_list, course_url_list, parent_folder=None):
         else:
             folder_path = parent_folder + r'\\' + clean_string(course_title_list[course])
             folder = save_to_db(Folder, folder_path=folder_path, folder_url=course_url_list[course], is_mother_link = False)
-
-        # folder = Folder(folder_path = "/" + clean_string(course_title_list[course]),
-        #                 folder_url = course_url_list[course])
-        # db_session.add(folder)
-
-    # db_session.commit()
-
     print("Insertion into DB Folder completed.")
 
 def clean_file_name(this_string):
@@ -322,9 +259,6 @@ def clean_file_name(this_string):
     return clean_string('.'.join(this_string.split('.')[:-1])) + '.' + this_string.split('.')[-1]
 
 def commit_to_db_file(file_title_list, file_url_list, folder_path):
-
-    # global db_session
-
     for course in range(len(file_title_list)):
 
         print("\n==================")
@@ -332,12 +266,6 @@ def commit_to_db_file(file_title_list, file_url_list, folder_path):
         print("==================\n")
 
         file = save_to_db(File, folder_path = folder_path, file_name = file_title_list[course], file_url = file_url_list[course])
-
-        # folder = Folder(folder_path = "/" + clean_string(course_title_list[course]),
-        #                 folder_url = course_url_list[course])
-        # db_session.add(folder)
-
-    # db_session.commit()
 
     print("Insertion into DB File completed.")
 
@@ -370,10 +298,10 @@ def get_coursemenu_text_and_links_from_mother_links(this_url, this_folder, print
     '''
     global requests_session
 
-    pprint("Running get_coursemenu_text_and_links_from_mother_links")
-    pprint(this_url)
+    # print("Running get_coursemenu_text_and_links_from_mother_links")
+    # print(this_url)
 
-    response = requests_session.get(this_url, timeout=(15,15)) # , headers=headers, data=data)
+    response = requests_session.get(this_url, timeout=(15,15))
 
     if print_results:
         print_progress(response)
@@ -389,9 +317,9 @@ def get_coursemenu_text_and_links_from_mother_links(this_url, this_folder, print
     for child in collection:
         text_collection.append(clean_string(child.text_content()))
 
-    if print_coursemenu_links or True: # remove True
-        pprint(text_collection)
-        pprint(link_collection)
+    # if print_coursemenu_links or True: # remove True
+    #     pprint(text_collection)
+    #     pprint(link_collection)
 
     if add_to_folders:
         commit_to_db_folder(text_collection,link_collection,parent_folder=this_folder)
@@ -417,10 +345,6 @@ def get_all_coursemenu_from_mother_links():
 
             try:
                 get_coursemenu_text_and_links_from_mother_links(this_url=str(current_folder_url), this_folder=current_folder_path ,print_results=True,print_coursemenu_links=True,add_to_folders=True)
-
-                # db_row.subfolders_extracted = 1
-                # db_session.commit()
-
             except:
                 e = sys.exc_info()[0]
                 pprint(e)
@@ -442,10 +366,10 @@ def get_maincontent_folders_and_files_from_mother_links(this_url, this_folder, p
     '''
     global requests_session
 
-    pprint("Running get_maincontent_folders_and_files_from_mother_links")
-    pprint(this_url)
+    # pprint("Running get_maincontent_folders_and_files_from_mother_links")
+    # pprint(this_url)
 
-    response = requests_session.get(this_url, timeout=(15,15)) # , headers=headers, data=data)
+    response = requests_session.get(this_url, timeout=(15,15))
     wait()
 
     if print_results:
@@ -473,13 +397,13 @@ def get_maincontent_folders_and_files_from_mother_links(this_url, this_folder, p
     file_link_collection = [mother_url + link for link in file_link_collection if mother_url not in link]
     folder_link_collection = [mother_url + link for link in folder_link_collection if mother_url not in link]
 
-    if print_maincontent_folder_links:
-        pprint(folder_text_collection)
-        pprint(folder_link_collection)
+    # if print_maincontent_folder_links:
+    #     pprint(folder_text_collection)
+    #     pprint(folder_link_collection)
 
-    if print_maincontent_file_links:
-        pprint(file_text_collection)
-        pprint(file_link_collection)
+    # if print_maincontent_file_links:
+    #     pprint(file_text_collection)
+    #     pprint(file_link_collection)
 
     if add_to_folders:
         commit_to_db_folder(folder_text_collection,folder_link_collection,parent_folder=this_folder)
@@ -553,14 +477,13 @@ def get_url(this_url):
 
     error_msg = None
 
-    # test 1
-    for attempt in range(10): # try max 10 times
+    for attempt in range(10):
         try:
-            response = requests_session.get(this_url, timeout=(15,15))  # , headers=headers, data=data)
+            response = requests_session.get(this_url, timeout=(15,15)) 
             return response, error_msg
         except requests.exceptions.Timeout as error_msg:
             # Maybe set up for a retry, or continue in a retry loop
-            pprint("Timeout exception! Retrying login...")
+            print("Timeout exception! Retrying login...")
             login()
         except requests.exceptions.TooManyRedirects as error_msg:
             # Tell the user their URL was bad and try a different one
@@ -584,10 +507,10 @@ def get_maincontent_folders_and_files_from_child_links(this_url, this_folder, pr
     '''
     global requests_session
 
-    pprint("Running get_maincontent_folders_and_files_from_child_links")
-    pprint(this_url)
+    # print("Running get_maincontent_folders_and_files_from_child_links")
+    # print(this_url)
 
-    response = requests_session.get(this_url, ) # , headers=headers, data=data)
+    response = requests_session.get(this_url, )
     # response, error_msg = get_url(this_url)
     # if not error_msg == None:
     wait()
@@ -617,13 +540,13 @@ def get_maincontent_folders_and_files_from_child_links(this_url, this_folder, pr
     file_link_collection = [mother_url + link for link in file_link_collection if mother_url not in link]
     folder_link_collection = [mother_url + link for link in folder_link_collection if mother_url not in link]
 
-    if print_maincontent_folder_links:
-        pprint(folder_text_collection)
-        pprint(folder_link_collection)
+    # if print_maincontent_folder_links:
+    #     pprint(folder_text_collection)
+    #     pprint(folder_link_collection)
 
-    if print_maincontent_file_links:
-        pprint(file_text_collection)
-        pprint(file_link_collection)
+    # if print_maincontent_file_links:
+    #     pprint(file_text_collection)
+    #     pprint(file_link_collection)
 
     if add_to_folders:
         commit_to_db_folder(folder_text_collection,folder_link_collection,parent_folder=this_folder)
@@ -698,12 +621,10 @@ def try_get_url(this_url):
     for i in range(10):
         try:
             print("Attempt #%s: Getting %s..." % (i, this_url))
-            response = requests_session.get(this_url, timeout=(15,15), stream=True)  # , headers=headers, data=data)
+            response = requests_session.get(this_url, timeout=(15,15), stream=True) 
             break
-        except Exception, e:
+        except Exception as e:
             print("Error: %s" % e)
-        # else:
-        #     print("TooManyRetriesCustomException")
     else:
         print("TooManyRetriesCustomException")
         raise TooManyRetriesCustomException
@@ -711,21 +632,16 @@ def try_get_url(this_url):
     return response
 
 def print_progress_for_download(response):
-
     print("\n")
-
     print("[Download] Title: " + get_title(response))
-    print("[Download] Status Code: " + str(response.status_code))
-    print("[Download] Response URL: " + response.url)
+    # print("[Download] Status Code: " + str(response.status_code))
+    # print("[Download] Response URL: " + response.url)
 
-def navigate_to_download(this_url, folder_path, print_results=False): # , print_coursemenu_links_only=False):
+def navigate_to_download(this_url, folder_path, print_results=False):
     '''
     HTTP GET
     '''
     global requests_session
-
-    # print("Getting %s..." % this_url)
-    # response = requests_session.get(this_url, timeout=(15,15))  # , headers=headers, data=data)
 
     print("Initializing navigate_to_download...")
 
@@ -749,8 +665,8 @@ def download_file_to_folder(url, response, folder_path):
 
     print("\nEntering download_file_to_folder(%s, %s, %s)" % (url,response,folder_path))
 
-    filename = urllib.unquote(urlparse(url).path.split("/")[-1]) # clean filename from query
-    print("download_file_to_folder()>filename: %s" % filename).encode('utf-8')
+    filename = unquote(urlparse(url).path.split("/")[-1]) # clean filename from query
+    print("download_file_to_folder()>filename: %s" % filename)
     file_extension = filename.split('.')[-1]
     print("download_file_to_folder()>file_extension: %s" % file_extension)
 
@@ -764,11 +680,7 @@ def download_file_to_folder(url, response, folder_path):
     # Initilialize Full Path List
     full_path_list = folder_path.split('\\')
     print("download_file_to_folder()>full_path_list: %s" % '/'.join(full_path_list))
-    # full_path_list.append(filename)
-    if sys.platform == 'win32':
-        temp_full_path = os.path.join(os.getcwd(),*full_path_list)
-    else:
-        temp_full_path = os.path.join(os.path.dirname(sys.argv[0]),*full_path_list)
+    temp_full_path = os.path.join(os.getcwd(), 'files', *full_path_list)
 
     # Create Directory
     print("Getting or Creating Directory for %s ..." % temp_full_path)
@@ -776,23 +688,20 @@ def download_file_to_folder(url, response, folder_path):
 
     # Download File
     full_path_list.append(filename)
-    if sys.platform == 'win32':
-        final_full_path = os.path.join(os.getcwd(),*full_path_list)
-    else:
-        final_full_path = os.path.join(os.path.dirname(sys.argv[0]),*full_path_list)
+    final_full_path = os.path.join(os.getcwd(), 'files', *full_path_list)
 
     # Deal with File Paths which are too long
     if sys.platform == 'win32':
         if len(final_full_path) > 259:
             final_full_path = chr(92) + chr(92) + '?' + chr(92) + final_full_path
 
-    print("Downloading %s ..." % filename).encode('utf-8')
+    print("Downloading %s ..." % filename)
     print("@ %s" % final_full_path)
     with open(final_full_path, "wb") as handle:
         for data in tqdm(response.iter_content()):
             handle.write(data)
 
-    print("Download complete for %s!" % filename).encode('utf-8')
+    print("Download complete for %s!" % filename)
 
     return filename
 
@@ -818,18 +727,10 @@ def get_all_undownloaded_files():
             this_file_path = db_row.folder_path
             print('get_all_undownloaded_files() > this_file_path: %s' % this_file_path)
 
-            # try:
             print('get_all_undownloaded_files() > try [block]')
             actual_file_name, actual_file_url = navigate_to_download(this_file_url, this_file_path, print_results=True)
             db_row.file_actual_name = actual_file_name
             db_row.file_actual_url = actual_file_url
-
-            # except:
-            #     print('get_all_undownloaded_files() > except [block]')
-            #     e = sys.exc_info()[0]
-            #     pprint(e)
-            #     pprint("Skipping " + str(this_file_url))
-
             wait()
 
             print('get_all_undownloaded_files() > exited try/except block')
@@ -860,12 +761,9 @@ def init_other_options():
 
     throttle_download_max_wait = None
     throttle_download_min_wait = None
-
-    # print("The last set of options to tweak...\n")
-
     customise_throttle = False
 
-    user_throttle_downloads = raw_input("Would you like to throttle your downloads (limit the download speed by waiting for a few seconds between downloads) [Y/N]? ")
+    user_throttle_downloads = input("Would you like to throttle your downloads (limit the download speed by waiting for a few seconds between downloads) [Y/N]? ")
     if user_throttle_downloads == 'Y' or user_throttle_downloads == 'y':
         throttle_downloads = True
 
@@ -877,19 +775,17 @@ def init_other_options():
         throttle_downloads = False
         return
 
-    # this section only executes if customise_throttle is set to True
-
     while not type(throttle_download_max_wait) == int:
 
         try:
-            throttle_download_max_wait = int(raw_input("What is your maximum allowed wait time in seconds between downloads [Enter integer from 0 to 9999]? "))
+            throttle_download_max_wait = int(input("What is your maximum allowed wait time in seconds between downloads [Enter integer from 0 to 9999]? "))
         except:
             pass
 
     while not type(throttle_download_min_wait) == int:
 
         try:
-            throttle_download_min_wait = int(raw_input("What is your minimum allowed wait time in seconds between downloads [Enter integer from 0 to 9999]? "))
+            throttle_download_min_wait = int(input("What is your minimum allowed wait time in seconds between downloads [Enter integer from 0 to 9999]? "))
         except:
             pass
 
@@ -903,33 +799,30 @@ def init_execute_options():
     print("Execute Options")
     print("===============\n")
 
-    # print("Just a couple of options more...")
-
     mission_list = []
 
-    user_execute_ALL = raw_input("Would you like to execute everything [Y/N]? ")
+    user_execute_ALL = input("Would you like to execute everything [Y/N]? ")
     if user_execute_ALL == 'Y' or user_execute_ALL == 'y':
         execute_ALL()
         return
 
-    user_get_all_coursemenu_from_mother_links = raw_input("\nWould you like to get_all_coursemenu_from_mother_links [Y/N]? ")
+    user_get_all_coursemenu_from_mother_links = input("\nWould you like to get_all_coursemenu_from_mother_links [Y/N]? ")
     if user_get_all_coursemenu_from_mother_links == 'Y' or user_get_all_coursemenu_from_mother_links == 'y':
         mission_list.append(get_all_coursemenu_from_mother_links)
 
-    user_get_all_subfolders_and_files_from_mother_links = raw_input("\nWould you like to get_all_subfolders_and_files_from_mother_links [Y/N]? ")
+    user_get_all_subfolders_and_files_from_mother_links = input("\nWould you like to get_all_subfolders_and_files_from_mother_links [Y/N]? ")
     if user_get_all_subfolders_and_files_from_mother_links == 'Y' or user_get_all_subfolders_and_files_from_mother_links == 'y':
         mission_list.append(get_all_subfolders_and_files_from_mother_links)
 
-    user_get_all_subfolders_and_files_from_child_links = raw_input("\nWould you like to get_all_subfolders_and_files_from_child_links [Y/N]? ")
+    user_get_all_subfolders_and_files_from_child_links = input("\nWould you like to get_all_subfolders_and_files_from_child_links [Y/N]? ")
     if user_get_all_subfolders_and_files_from_child_links == 'Y' or user_get_all_subfolders_and_files_from_child_links == 'y':
         mission_list.append(get_all_subfolders_and_files_from_child_links)
 
-    user_get_all_undownloaded_files = raw_input("\nWould you like to get_all_undownloaded_files [Y/N]? ")
+    user_get_all_undownloaded_files = input("\nWould you like to get_all_undownloaded_files [Y/N]? ")
     if user_get_all_undownloaded_files == 'Y' or user_get_all_undownloaded_files == 'y':
         mission_list.append(get_all_undownloaded_files)
 
     [mission() for mission in mission_list if not mission == None]
-    # [mission() for mission in mission_list]
 
 def execute_ALL():
 
@@ -949,30 +842,28 @@ def init_reset_options():
     print("Reset Options")
     print("=============\n")
 
-    # print("A couple of things before we start.\n")
-
-    user_reset_ALL = raw_input("Would you like to reset everything [Y/N]? ")
+    user_reset_ALL = input("Would you like to reset everything [Y/N]? ")
     if user_reset_ALL == 'Y' or user_reset_ALL == 'y':
         reset_ALL()
         return
 
-    user_reset_NONE = raw_input("Would you like to reset something [Y/N]? ")
+    user_reset_NONE = input("Would you like to reset something [Y/N]? ")
     if user_reset_NONE == 'N' or user_reset_NONE == 'n':
         return
 
-    user_reset_Folder_mother_links_coursemenu = raw_input("\nWould you like to reset coursemenu for mother links [Y/N]? ")
+    user_reset_Folder_mother_links_coursemenu = input("\nWould you like to reset coursemenu for mother links [Y/N]? ")
     if user_reset_Folder_mother_links_coursemenu == 'Y' or user_reset_Folder_mother_links_coursemenu == 'y':
         reset_Folder_mother_links_coursemenu()
 
-    user_reset_Folder_files_extracted = raw_input("\nWould you like to reset extracted files for all links [Y/N]? ")
+    user_reset_Folder_files_extracted = input("\nWould you like to reset extracted files for all links [Y/N]? ")
     if user_reset_Folder_files_extracted == 'Y' or user_reset_Folder_files_extracted == 'y':
         reset_Folder_files_extracted()
 
-    user_reset_Folder_subfolders_extracted = raw_input("\nWould you like to reset extracted subfolders for all links [Y/N]? ")
+    user_reset_Folder_subfolders_extracted = input("\nWould you like to reset extracted subfolders for all links [Y/N]? ")
     if user_reset_Folder_subfolders_extracted == 'Y' or user_reset_Folder_subfolders_extracted == 'y':
         reset_Folder_subfolders_extracted()
 
-    user_reset_File_downloaded = raw_input("\nWould you like to reset all downloaded files [Y/N]? ")
+    user_reset_File_downloaded = input("\nWould you like to reset all downloaded files [Y/N]? ")
     if user_reset_File_downloaded == 'Y' or user_reset_File_downloaded == 'y':
         reset_File_downloaded()
 
@@ -1064,7 +955,7 @@ def init_keyring_options():
 
         print("\nWelcome Stranger! You have not set your username and/or password. Please set them first.")
 
-        username = raw_input("Username: ")
+        username = input("Username: ")
 
         password = getpass.getpass("Password: ")
 
@@ -1076,13 +967,13 @@ def init_keyring_options():
         username = str(keyring.get_password('system', 'username'))
         password = str(keyring.get_password('system', 'password'))
 
-        change_credentials = raw_input("Welcome back, %s. If you want to change or delete your credentials, key in 'Y' without quotes and return to proceed. Else, simply hit return to continue.\nDo you want to change or delete your credentials [Y/N]? " % username)
+        change_credentials = input("Welcome back, %s. If you want to change or delete your credentials, key in 'Y' without quotes and return to proceed. Else, simply hit return to continue.\nDo you want to change or delete your credentials [Y/N]? " % username)
 
         if change_credentials.strip() == 'Y' or change_credentials.strip() == 'y':
             keyring.delete_password('system', 'username')
             keyring.delete_password('system', 'password')
             user_wants_to_change_credentials = True
-        else if change_credentials.strip() == '':
+        elif change_credentials.strip() == '':
             user_wants_to_change_credentials = False
         else:
             user_wants_to_change_credentials = False
@@ -1093,7 +984,7 @@ def change_keyring():
 
     print("\nYou have chosen to reset or change your username and password.")
 
-    username = raw_input("New Username: ")
+    username = input("New Username: ")
 
     password = getpass.getpass("New Password: ")
 
@@ -1126,7 +1017,7 @@ def fast_and_furious():
     print("FAST AND FURIOUS")
     print("===============\n")
 
-    one_shot = raw_input("Do you want to do a hassle-free quick run of Blackbox [Y/N]? ")
+    one_shot = input("Do you want to do a hassle-free quick run of Blackbox [Y/N]? ")
 
     if one_shot.strip() == 'Y' or one_shot.strip() == 'y' or one_shot.strip() == '':
 
@@ -1175,11 +1066,11 @@ def main():
     # Initialization - Must always be executed!
     # =========================================================
     global db_session
-    intialize_db() # This must be executed at all times!
+    intialize_db()
 
     global requests_session, response # requests session
     requests_session = requests.Session() # requests session
-    login() # This must be executed at all times!
+    login()
 
     if not fast_and_furious():
         init_reset_options()
@@ -1191,15 +1082,13 @@ def main():
     print("===============\n")
 
 if __name__ == "__main__":
-
     try:
         if sys.platform == 'win32':
             logging.basicConfig(filename='blackbox.log', level=logging.CRITICAL)
         else:
-            logging.basicConfig(filename=os.path.join(os.path.dirname(sys.argv[0]),'blackbox.log'), level=logging.CRITICAL)
+            logging.basicConfig(filename=os.path.join(os.getcwd(),'blackbox.log'), level=logging.CRITICAL)
         main()
-
-    except Exception, e:
+    except Exception as e:
         print('%s: %s' % (str(datetime.datetime.now()), e))
         traceback.print_exc()  # shows what exactly went wrong and in which lines
         logging.critical('%s: %s' % (str(datetime.datetime.now()), e), exc_info=True)
@@ -1208,4 +1097,4 @@ if __name__ == "__main__":
         print("FATAL ERROR")
         print("***************\n")
 
-        quit_error = raw_input('Something has gone wrong. Please check your internet connection or inputs. If you believe this is an error, please raise an issue at https://github.com/jarrettyeo/blackbox-v2/issues along with your "blackbox.log" log file.\n\nHit any key to quit...')
+        quit_error = input('Something has gone wrong. Please check your internet connection or inputs. If you believe this is an error, please raise an issue at https://github.com/jarrettyeo/blackbox-v2/issues along with your "blackbox.log" log file.\n\nHit any key to quit...')

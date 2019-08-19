@@ -16,21 +16,13 @@ Download your installer according to your system version. Double-click to instal
 
 ### Downloads
 
-| System        | Installer     | Zip  |
-| ------------- | ------------- | ----- |
-| Windows 64-bit | [Blackbox-1.0-amd64.msi][1] | [exe.win-amd64-2.7.zip][3] |
-| Windows 32-bit | [Blackbox-1.0-win32.msi][2] | [exe.win32-2.7.zip][4] |
-| Mac 64-bit | - | [exe.macosx-10.9-x86_64-2.7.zip][5] |
+| System     | Installer | Zip                                  |
+| ---------- | --------- | ------------------------------------ |
+| Mac 64-bit | -         | [exe.macosx-10.14-x86_64-3.7.zip][1] |
 
-[1]:https://github.com/jarrettyeo/blackbox/raw/master/dist/Blackbox-1.0-amd64.msi
-[2]: https://github.com/jarrettyeo/blackbox/raw/master/dist/Blackbox-1.0-win32.msi
-[3]: https://github.com/jarrettyeo/blackbox/raw/master/build/exe.win-amd64-2.7/exe.win-amd64-2.7.zip
-[4]: https://github.com/jarrettyeo/blackbox/raw/master/build/exe.win32-2.7/exe.win32-2.7.zip
-[5]: https://github.com/jarrettyeo/blackbox/raw/master/build/exe.macosx-10.9-x86_64-2.7/exe.macosx-10.9-x86_64-2.7.zip
+[1]: https://github.com/zaynjarvis/blackbox/raw/master/dist/exe.macosx-10.14-x86_64-3.7.zip
 
 > Mac Users: When prompted to allow access to your keychain, click on "Always Allow".
-
-> Windows Users: When prompted to allow the program through your firewall, tick "Private networks" and click on "Allow access".
 
 ## How to Use (Basic)
 
@@ -81,10 +73,11 @@ Key in `y` and hit `ENTER` when you are asked "Would you like to execute everyth
 ## Recommended Settings
 
 1. Enable download-throttling
-> Blackboard apparently imposes a throttle download limit on your account if you download a large number of files at one go. It is best to throttle your downloads. The recommended max throttle wait time is 10 seconds while the min throttle wait time is 3 seconds.
+
+   > Blackboard apparently imposes a throttle download limit on your account if you download a large number of files at one go. It is best to throttle your downloads. The recommended max throttle wait time is 10 seconds while the min throttle wait time is 3 seconds.
 
 2. Install in your Downloads folder
-> It is recommended that you install Blackbox in your Downloads folder for easy access.
+   > It is recommended that you install Blackbox in your Downloads folder for easy access.
 
 ## Future Extensions
 
@@ -94,13 +87,15 @@ Key in `y` and hit `ENTER` when you are asked "Would you like to execute everyth
 
 3. Define custom download location
 
+4. UI implementations (Google Extensions/one-click app)
+
 ---
 
 # For Devs
 
 ## Basic Info
 
-Blackbox is written in Python 2.7. It uses Selenium and `chromedriver` (renamed to `boxdriver`) to scrap the links of the courses first, then uses a persistent `requests` session to extract other data and download files. All user credentials is stored using `keyring`.
+Blackbox is updated to 3.7. It uses Selenium and `chromedriver` (renamed to `boxdriver`) to scrap the links of the courses first, then uses a persistent `requests` session to extract other data and download files. All user credentials is stored using `keyring`.
 
 Blackbox is freezed into executables using `cx_Freeze` which supports cross-platform exporting and 32-bit and 64-bit systems. To prevent compatibility during compilation, it is recommended to use a single Python script.
 
@@ -108,34 +103,38 @@ PRs welcome.
 
 ## How to Build
 
-> Pip install `cx_Freeze`
+> Check python and pip versions
 
 ```
-$ python2 -m pip install cx_Freeze --upgrade
+$ python3 --version
+$ pip3 --version
+```
+
+> pip3 install `virtualenv`
+
+```
+$ pip3 install virtualenv
+$ virtualenv env
+$ source ./env/bin/activate
+```
+
+> create virtual env for the project and install dependencies
+
+```
+$ pip3 install -r requirements.txt
+$ pip3 install --upgrade git+https://github.com/anthony-tuininga/cx_Freeze.git@master
 ```
 
 > Build for current system (build)
 
 ```
-$ python2 setup.py build
+$ python3 setup.py build
 ```
 
-> Build for Windows (build & dist)
+> Exit from virtualenv
 
 ```
-$ python2 setup.py bdist_msi
-```
-
-> Build for Mac (build & dist)
-
-```
-$ python2 setup.py bdist_dmg
-```
-
-or
-
-```
-$ python2 setup.py bdist_mac
+$ deactivate
 ```
 
 ---
@@ -146,12 +145,15 @@ There is no easy way to determine whether a file has been updated or not - a fil
 
 ## Disclaimer
 
-The author accepts no responsibility for any damage done to your machine in your course of using this program.
+This project is inhereted from [Jarrett Yeo](https://github.com/jarrettyeo) who is the developer setting up and implemneted the project initially.
+The author and maintainers accepts no responsibility for any damage done to your machine in your course of using this program.
 
 ## Contributors
 
 - [Jarrett Yeo](https://github.com/jarrettyeo)
 
 - [Adi](https://github.com/adithyaxx)
+
+- [Zayn Jarvis](https://github.com/zaynjarvis)
 
 Contributors feel free to add your name here after your PR is accepted!
